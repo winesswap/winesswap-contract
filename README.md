@@ -1,2 +1,7 @@
-# winsswap-contract
-project for winsswap solidity code
+# Winesswap 🍷
+
+https://app.winesswap.org. Feel free to read the code. More details coming soon.
+
+## License
+
+WTFPL
