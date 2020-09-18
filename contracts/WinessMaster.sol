@@ -66,6 +66,7 @@ contract WinesMaster is Ownable {
 
     event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
     event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
+    event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount);
 
     constructor(WinesToken _gift, uint256 _startBlock, uint256 _minerBlockReward, address _fundPoolAddress) public {
         giftToken = _gift;
@@ -120,6 +121,15 @@ contract WinesMaster is Ownable {
         user.rewardDebt = user.amount.mul(pool.share).div(1e12);
         pool.lpToken.safeTransfer(address(msg.sender), _amount);
         emit Withdraw(msg.sender, _pid, _amount);
+    }
+    
+    function emergencyWithdraw(uint256 _pid) public {
+        PoolInfo storage pool = poolInfoList[_pid];
+        UserInfo storage user = userInfoMap[_pid][msg.sender];
+        pool.lpToken.safeTransfer(address(msg.sender), user.amount);
+        emit EmergencyWithdraw(msg.sender, _pid, user.amount);
+        user.amount = 0;
+        user.rewardDebt = 0;
     }
 
     // withdraw reward form Deposit pool

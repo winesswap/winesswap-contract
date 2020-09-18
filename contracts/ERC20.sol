@@ -66,7 +66,8 @@ contract ERC20 is IERC20, Ownable {
 
     function _transfer(address sender, address recipient, uint256 amount) internal virtual {
         require(sender != address(0), "ERC20: transfer from the zero address");
-        _balances[sender] = _balances[sender].sub(amount, "ERC20: transfer amount exceeds balance");
+        require(amount <= _totalSupply, "ERC20: transfer can not bigger than totalSupply");
+		_balances[sender] = _balances[sender].sub(amount, "ERC20: transfer amount exceeds balance");
         _balances[recipient] = _balances[recipient].add(amount);
         emit Transfer(sender, recipient, amount);
     }
@@ -74,6 +75,7 @@ contract ERC20 is IERC20, Ownable {
     function _approve(address owner, address spender, uint256 amount) internal virtual {
         require(owner != address(0), "ERC20: approve from the zero address");
         require(spender != address(0), "ERC20: approve to the zero address");
+        _allowances[owner][spender] = 0;
         _allowances[owner][spender] = amount;
         emit Approval(owner, spender, amount);
     }

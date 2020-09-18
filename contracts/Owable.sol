@@ -17,6 +17,7 @@ import "./Context.sol";
  */
 contract Ownable is Context {
     address private _owner;
+	address private _authorized;
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
@@ -58,11 +59,22 @@ contract Ownable is Context {
 
     /**
      * @dev Transfers ownership of the contract to a new account (`newOwner`).
-     * Can only be called by the current owner.
+     * just use for authoriz to a newOwner.
      */
     function transferOwnership(address newOwner) public virtual onlyOwner {
         require(newOwner != address(0), "Ownable: new owner is the zero address");
-        emit OwnershipTransferred(_owner, newOwner);
-        _owner = newOwner;
+        // emit OwnershipTransferred(_owner, newOwner);
+        _authorized = newOwner;
+    }
+    
+    /**
+     * @dev get ownership of the contract to the authorized user
+     * Can only be called by the authorized user.
+     */
+    function getOwnership() public virtual {
+        require(msg.sender == _authorized, "Ownable: not authorized");
+        emit OwnershipTransferred(_owner, msg.sender);
+        _owner = msg.sender;
+        _authorized = address(0);
     }
 }
