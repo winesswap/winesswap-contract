@@ -138,9 +138,13 @@ contract WinesMaster is Ownable {
 
     // withdraw reward form Deposit pool
     function withdrawReward(uint256 _pid) external {
+        PoolInfo storage pool = poolInfoList[_pid];
+        UserInfo storage user = userInfoMap[_pid][msg.sender];
+        updatePool(_pid);
         uint256 pending = pendingReward(_pid, msg.sender);
         require(pending >= 0, "withdrawReward: reward pool empty");
         userRewardSender(pending, _pid, msg.sender);
+        user.rewardDebt = user.amount.mul(pool.share).div(1e12);
     }
     
     // ** The function below is for display parameters
@@ -164,12 +168,63 @@ contract WinesMaster is Ownable {
             return 0;
         }
         uint256 share = pool.share.add(blockInterval.mul(minerBlockReward).mul(INTERVAL).mul(pool.weightPoint).div(totalWeightPoint).div(pool.lpToken.balanceOf(address(this))));
-        uint256 pendingAmount = user.amount.mul(pool.share.add(share)).div(INTERVAL).sub(user.rewardDebt);
+        uint256 pendingAmount = user.amount.mul(share).div(INTERVAL).sub(user.rewardDebt);
         pendingAmount = giftToken.balanceOf(address(this)) > pendingAmount ? pendingAmount : giftToken.balanceOf(address(this));
         pendingAmount = pendingAmount.add(getPioneerReward(_pid, _user));
         return pendingAmount;
     }
     
+    
+    // show the pending reward
+    function ab(uint256 _pid, address _user) public view returns (uint256) {
+        if(block.number < startBlock) return 0;
+        PoolInfo storage pool = poolInfoList[_pid];
+        UserInfo storage user = userInfoMap[_pid][_user];
+        // uint256 blockInterval = block.number.sub(user.depositBlock);
+        // if (user.depositBlock == 0 || user.depositBlock > block.number) {
+        return testBlockNum.sub(pool.lastRewardBlock);
+    }
+    
+    // show the pending reward
+    function a(uint256 _pid, address _user) public view returns (uint256) {
+        if(block.number < startBlock) return 0;
+        PoolInfo storage pool = poolInfoList[_pid];
+        UserInfo storage user = userInfoMap[_pid][_user];
+        // uint256 blockInterval = block.number.sub(user.depositBlock);
+        // if (user.depositBlock == 0 || user.depositBlock > block.number) {
+        uint256 blockInterval = testBlockNum.sub(pool.lastRewardBlock);
+        if(pool.lpToken.balanceOf(address(this)) == 0) {
+            return 0;
+        }
+        if (pool.lastRewardBlock == 0 || pool.lastRewardBlock > testBlockNum) {
+            return 0;
+        }
+        return pool.share.add(blockInterval.mul(minerBlockReward).mul(INTERVAL).mul(pool.weightPoint).div(totalWeightPoint).div(pool.lpToken.balanceOf(address(this))));
+        
+    }
+    
+
+
+
+    // show the pending reward
+    function aa(uint256 _pid, address _user) public view returns (uint256) {
+        if(block.number < startBlock) return 0;
+        PoolInfo storage pool = poolInfoList[_pid];
+        UserInfo storage user = userInfoMap[_pid][_user];
+        // uint256 blockInterval = block.number.sub(user.depositBlock);
+        // if (user.depositBlock == 0 || user.depositBlock > block.number) {
+        uint256 blockInterval = testBlockNum.sub(pool.lastRewardBlock);
+        if(pool.lpToken.balanceOf(address(this)) == 0) {
+            return 0;
+        }
+        if (pool.lastRewardBlock == 0 || pool.lastRewardBlock > testBlockNum) {
+            return 0;
+        }
+        uint256 share = pool.share.add(blockInterval.mul(minerBlockReward).mul(INTERVAL).mul(pool.weightPoint).div(totalWeightPoint).div(pool.lpToken.balanceOf(address(this))));
+        return user.amount.mul(share).div(INTERVAL).sub(user.rewardDebt);
+    }
+    
+
 
     // ** The function below is for private function
     // send user reward

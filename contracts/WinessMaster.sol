@@ -91,7 +91,7 @@ contract WinesMaster is Ownable {
         pool.lpToken.safeTransferFrom(address(msg.sender), address(this), _amount);
         updatePool(_pid);
         uint256 pending = pendingReward(_pid, msg.sender);
-        if(pending >= 0) {
+        if(pending > 0) {
             userRewardSender(pending, _pid, msg.sender);
         }
         user.amount = user.amount.add(_amount);
@@ -134,9 +134,14 @@ contract WinesMaster is Ownable {
 
     // withdraw reward form Deposit pool
     function withdrawReward(uint256 _pid) external {
+        PoolInfo storage pool = poolInfoList[_pid];
+        UserInfo storage user = userInfoMap[_pid][msg.sender];
+        updatePool(_pid);
         uint256 pending = pendingReward(_pid, msg.sender);
         require(pending >= 0, "withdrawReward: reward pool empty");
         userRewardSender(pending, _pid, msg.sender);
+        user.rewardDebt = user.amount.mul(pool.share).div(1e12);
+        
     }
     
     // ** The function below is for display parameters
@@ -161,7 +166,7 @@ contract WinesMaster is Ownable {
             return 0;
         }
         uint256 share = pool.share.add(blockInterval.mul(minerBlockReward).mul(INTERVAL).mul(pool.weightPoint).div(totalWeightPoint).div(pool.lpToken.balanceOf(address(this))));
-        uint256 pendingAmount = user.amount.mul(pool.share.add(share)).div(INTERVAL).sub(user.rewardDebt);
+        uint256 pendingAmount = user.amount.mul(share).div(INTERVAL).sub(user.rewardDebt);
         pendingAmount = giftToken.balanceOf(address(this)) > pendingAmount ? pendingAmount : giftToken.balanceOf(address(this));
         pendingAmount = pendingAmount.add(getPioneerReward(_pid, _user));
         return pendingAmount;
