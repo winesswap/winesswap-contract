@@ -147,6 +147,7 @@ contract WinesMaster is Ownable {
 
     // show the pending reward
     function pendingReward(uint256 _pid, address _user) public view returns (uint256) {
+        if(block.number < startBlock) return 0;
         PoolInfo storage pool = poolInfoList[_pid];
         UserInfo storage user = userInfoMap[_pid][_user];
         uint256 blockInterval = block.number.sub(pool.lastRewardBlock);
@@ -162,9 +163,7 @@ contract WinesMaster is Ownable {
         uint256 share = pool.share.add(blockInterval.mul(minerBlockReward).mul(INTERVAL).mul(pool.weightPoint).div(totalWeightPoint).div(pool.lpToken.balanceOf(address(this))));
         uint256 pendingAmount = user.amount.mul(pool.share.add(share)).div(INTERVAL).sub(user.rewardDebt);
         pendingAmount = giftToken.balanceOf(address(this)) > pendingAmount ? pendingAmount : giftToken.balanceOf(address(this));
-        if(user.rewardDebt < pioneerInfoMap[_pid].endRewardDebt) {
-            pendingAmount.add(getPioneerReward(_pid, _user));
-        }
+        pendingAmount = pendingAmount.add(getPioneerReward(_pid, _user));
         return pendingAmount;
     }
 
